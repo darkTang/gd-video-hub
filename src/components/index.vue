@@ -76,8 +76,7 @@
                                 <span
                                     class="volume-bar"
                                     @click.stop
-                                    @mousedown="handleProgressMouseDown('volume', $event)"
-                                    @mouseup="handleProgressMouseUp('volume', $event)"
+                                    @mousedown="handleVolumeProgressMouseDown"
                                 ></span>
                             </div>
                         </div>
@@ -135,8 +134,7 @@
                             <span
                                 class="progress-bar"
                                 @click.stop
-                                @mousedown="handleProgressMouseDown('progress', $event)"
-                                @mouseup="handleProgressMouseUp('progress', $event)"
+                                @mousedown="handleProgressMouseDown"
                             ></span>
                         </div>
                         <div
@@ -152,7 +150,7 @@
 </template>
 
 <script setup lang="ts">
-import { PropType, computed, reactive, ref, watch } from 'vue';
+import { PropType, computed, onMounted, reactive, ref, watch } from 'vue';
 import { VideoOptionsType, ProgressType } from '../types/video-options-type';
 import { VolumeMute, VolumeSmall, VolumeNotice, GoStart, GoEnd, Pause, PlayOne, SettingTwo, MusicList, VideoTwo } from '@icon-park/vue-next'
 import progress from '../utils/progress'
@@ -214,13 +212,21 @@ const emit = defineEmits<{
     (e: 'on-error', error: MediaError): void
 }>()
 
+if (!videoConfigs.isAutoplay) {
+    watch(isActive, (newVal) => {
+        if (newVal) {
+            setTimeout(() => {
+                isActive.value = false
+            }, 3000);
+        }
+    })
+}
 
-watch(isActive, (newVal) => {
-    if (newVal) {
-        setTimeout(() => {
-            isActive.value = false
-        }, 3000);
-    }
+onMounted(() => {
+    document.addEventListener('mouseup', () => {
+        document.removeEventListener('mousemove', handleProgressDrag)
+        document.removeEventListener('mousemove', handleVolumeProgressDrag)
+    })
 })
 
 const formatTime = (time: number): string => {
@@ -247,22 +253,21 @@ const handleProgressClick = (flag: string, e: MouseEvent) => {
     }
 }
 
-const handleProgressMouseDown = (flag: string, e: MouseEvent) => {
-    document.addEventListener('mousemove', () => handleProgressDrag(flag, e))
+const handleProgressMouseDown = () => {
+    document.addEventListener('mousemove', handleProgressDrag)
 }
 
-const handleProgressDrag = (flag: string, e: MouseEvent) => {
-    if (flag === 'volume') {
-        volumeProgressWidth.value = (progress as ProgressType).handleProgressDrag(volumeProgressContainer.value!, e)
-        video.value!.volume = volumeProgressWidth.value / 100
-    } else if ('progress') {
-        progressWidth.value = (progress as ProgressType).handleProgressDrag(progressContainer.value!, e)
-        video.value!.currentTime = progressWidth.value * videoAttrs.duration / 100
-    }
+const handleVolumeProgressMouseDown = () => {
+    document.addEventListener('mousemove', handleVolumeProgressDrag)
 }
 
-const handleProgressMouseUp = (flag: string, e: MouseEvent) => {
-    document.removeEventListener('mousemove', () => handleProgressDrag(flag, e))
+const handleProgressDrag = (e: MouseEvent) => {
+    progressWidth.value = (progress as ProgressType).handleProgressDrag(progressContainer.value!, e)
+    video.value!.currentTime = progressWidth.value * videoAttrs.duration / 100
+}
+const handleVolumeProgressDrag = (e: MouseEvent) => {
+    volumeProgressWidth.value = (progress as ProgressType).handleProgressDrag(volumeProgressContainer.value!, e)
+    video.value!.volume = volumeProgressWidth.value / 100
 }
 
 const handlePlay = (flag: string) => {

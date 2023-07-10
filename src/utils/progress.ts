@@ -3,7 +3,14 @@ const progress: ProgressType = {
   handleProgressClick: (progressContainer: HTMLDivElement, e: MouseEvent) => {
     let progressContainerWidth: number = progressContainer.offsetWidth;
     let x: number = e.offsetX;
-    return (x * 100) / progressContainerWidth;
+    let value = (x * 100) / progressContainerWidth;
+    if (value > 100) {
+      value = 100;
+    }
+    if (value < 0) {
+      value = 0;
+    }
+    return value;
   },
   handleProgressDrag: (progressContainer: HTMLDivElement, e: MouseEvent) => {
     const DOMRect = progressContainer.getBoundingClientRect();
