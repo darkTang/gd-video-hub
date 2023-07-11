@@ -10,7 +10,7 @@ import { VideoOptionsType } from './types/video-options-type';
 
 const videoOptions: VideoOptionsType = {
   src: '/mihoyu.mp4',
-  poster: '/矮头图-兜底.jpg',
+  // poster: '/矮头图-兜底.jpg',
   // isShowControls: false,
   // isShowTitle: false,
   // isAutoplay: true,
